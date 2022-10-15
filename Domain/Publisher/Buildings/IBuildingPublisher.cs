@@ -1,4 +1,4 @@
-namespace Domain.Buildings
+namespace Domain.Publisher.Buildings
 {
     public interface IBuildingPublisher
     {

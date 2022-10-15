@@ -15,9 +15,13 @@ builder.Services.RegisterEventBus(builder.Configuration);
 
 builder.Services.AddConfigurations();
 
+builder.Services.AddDatabaseConfig(builder.Configuration);
+
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 var app = builder.Build();
+
+app.Services.ConfigureServiceBus();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();

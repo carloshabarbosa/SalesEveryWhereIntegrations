@@ -18,7 +18,7 @@ public class EventBusServiceBus : IEventBus, IAsyncDisposable
     private readonly string _topicName = "se_integration_bus";
     private readonly string _subscriptionName;
     private readonly ServiceBusSender _sender;
-    // private readonly ServiceBusProcessor _processor;
+    private readonly ServiceBusProcessor _processor;
     private readonly string AUTOFAC_SCOPE_NAME = "se_integration_bus";
     private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
 
@@ -32,10 +32,10 @@ public class EventBusServiceBus : IEventBus, IAsyncDisposable
         _subscriptionName = subscriptionClientName;
         _sender = _serviceBusPersisterConnection.TopicClient.CreateSender(_topicName);
         ServiceBusProcessorOptions options = new ServiceBusProcessorOptions { MaxConcurrentCalls = 10, AutoCompleteMessages = false };
-        // _processor = _serviceBusPersisterConnection.TopicClient.CreateProcessor(_topicName, _subscriptionName, options);
+        _processor = _serviceBusPersisterConnection.TopicClient.CreateProcessor(_topicName, _subscriptionName, options);
 
         // RemoveDefaultRule();
-        // RegisterSubscriptionClientMessageHandlerAsync().GetAwaiter().GetResult();
+        RegisterSubscriptionClientMessageHandlerAsync().GetAwaiter().GetResult();
     }
 
     public void Publish(IntegrationEvent @event)
@@ -43,6 +43,8 @@ public class EventBusServiceBus : IEventBus, IAsyncDisposable
         var eventName = @event.GetType().Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
         var jsonMessage = JsonSerializer.Serialize(@event, @event.GetType());
         var body = Encoding.UTF8.GetBytes(jsonMessage);
+
+        Console.WriteLine(eventName);
 
         var message = new ServiceBusMessage
         {
@@ -62,6 +64,25 @@ public class EventBusServiceBus : IEventBus, IAsyncDisposable
         _logger.LogInformation("Subscribing to dynamic event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
 
         _subsManager.AddDynamicSubscription<TH>(eventName);
+    }
+
+    private async Task RegisterSubscriptionClientMessageHandlerAsync()
+    {
+        _processor.ProcessMessageAsync +=
+            async (args) =>
+            {
+                var eventName = $"{args.Message.Subject}";
+                string messageData = args.Message.Body.ToString();
+
+                // Complete the message so that it is not received again.
+                if (await ProcessEvent(eventName, messageData))
+                {
+                    await args.CompleteMessageAsync(args.Message);
+                }
+            };
+
+        _processor.ProcessErrorAsync += ErrorHandler;
+        await _processor.StartProcessingAsync();
     }
 
     public void Subscribe<T, TH>()
@@ -203,6 +224,6 @@ public class EventBusServiceBus : IEventBus, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _subsManager.Clear();
-
+        await _processor.CloseAsync();
     }
 }

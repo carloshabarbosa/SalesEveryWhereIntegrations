@@ -1,5 +1,5 @@
 using Domain;
-using Domain.Buildings;
+using Domain.Publisher.Buildings;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -22,7 +22,6 @@ public class BuildingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Post([FromBody] BuildingRequestDto request)
     {
-
         try
         {
             _buildingPublisher.Publish(request);

@@ -1,6 +1,11 @@
 using Autofac;
+using Domain.Listener.Buildings;
+using Domain.Publisher.Buildings;
+using Infra.Data.Context;
 using Infra.EventBus;
 using Infra.EventBus.Abstractions;
+using Infra.IoC.Providers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,8 +37,30 @@ public static class DependecyInjectionExtension
 
         services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
+        services.AddTransient<BuildingListener>();
+
 
         return services;
-
     }
+
+    public static void ConfigureServiceBus(this IServiceProvider services)
+    {
+        var eventBus = services.GetRequiredService<IEventBus>();
+
+        eventBus.Subscribe<BuildingEvent, BuildingListener>();
+    }
+
+    public static IServiceCollection AddDatabaseConfig(
+             this IServiceCollection services, IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("Database");
+        services.AddDbContext<DataBaseContext>(options =>
+            options.UseNpgsql(connectionString));
+        return services;
+    }
+
+    public static IServiceCollection AddConfigurations(this IServiceCollection services) =>
+    services
+        .AddDomainDepencies()
+        .AddRepositoryDependencies();
 }

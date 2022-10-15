@@ -1,6 +1,8 @@
+using Domain._Base;
+
 namespace Domain.Buildings
 {
-    public class Building
+    public class Building : Entity<Guid, Building>
     {
         public string Name { get; private set; }
         public int RoomAmount { get; private set; }
@@ -13,11 +15,6 @@ namespace Domain.Buildings
             RoomAmount = roomAmount;
             Meters = meters;
             TotalPrice = totalPrice;
-        }
-
-        public BuildingEvent ToEvent()
-        {
-            return new BuildingEvent(Name, RoomAmount, Meters, TotalPrice);
         }
     }
 }

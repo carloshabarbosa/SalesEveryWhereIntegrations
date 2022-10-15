@@ -1,6 +1,6 @@
 using Infra.EventBus.Events;
 
-namespace Domain.Buildings
+namespace Domain.Publisher.Buildings
 {
     public record BuildingEvent : IntegrationEvent
     {
@@ -15,6 +15,11 @@ namespace Domain.Buildings
             RoomAmount = roomAmount;
             Meters = meters;
             TotalPrice = totalPrice;
+        }
+
+        public BuildingRequestDto ToRequest()
+        {
+            return new BuildingRequestDto(Name, RoomAmount, Meters, TotalPrice);
         }
 
     }

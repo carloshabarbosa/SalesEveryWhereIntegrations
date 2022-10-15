@@ -1,22 +1,23 @@
 using Infra.EventBus.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace Domain.Buildings
+namespace Domain.Publisher.Buildings
 {
     public class BuildingPublisher : IBuildingPublisher
     {
         private readonly IEventBus _eventBus;
-        private readonly ILogger _logger;
+        private readonly ILogger<BuildingPublisher> _logger;
 
-        public BuildingPublisher(IEventBus eventBus)
+        public BuildingPublisher(IEventBus eventBus,
+            ILogger<BuildingPublisher> logger)
         {
             _eventBus = eventBus;
+            _logger = logger;
         }
 
         public void Publish(BuildingRequestDto buildingRequest)
         {
-            var building = buildingRequest.ToDomain();
-            var buildingEvent = building.ToEvent();
+            var buildingEvent = buildingRequest.ToEvent();
             try
             {
                 _eventBus.Publish(buildingEvent);

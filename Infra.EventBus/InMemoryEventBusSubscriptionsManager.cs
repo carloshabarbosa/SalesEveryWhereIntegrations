@@ -43,6 +43,7 @@ public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptio
 
     private void DoAddSubscription(Type handlerType, string eventName, bool isDynamic)
     {
+
         if (!HasSubscriptionsForEvent(eventName))
         {
             _handlers.Add(eventName, new List<SubscriptionInfo>());
@@ -62,6 +63,12 @@ public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptio
         {
             _handlers[eventName].Add(SubscriptionInfo.Typed(handlerType));
         }
+
+        Console.WriteLine("*****************");
+        Console.WriteLine("DoAddSubscription");
+        Console.WriteLine(eventName);
+        Console.WriteLine(_handlers.Count);
+        Console.WriteLine("*****************");
     }
 
 
